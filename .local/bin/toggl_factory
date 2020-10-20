@@ -1,0 +1,34 @@
+#!/bin/bash
+
+###
+# Скрипт для запуска учета времени в Toggl по ID или URL задачи из буфера обмена
+# Для работы необходим pip-пакет togglCli
+###
+
+clip_content=`xclip -o` # получаем содержимое буфера обмена
+
+url=false
+task_id=
+
+# проверяем, что это номер задачи (6 цифр)
+if [[ $clip_content =~ ^[0-9]{6} ]]; then 
+    task_id=$clip_content
+else
+    # проверяем, возможно это url задачи
+    if [[ $clip_content =~ https:\/\/.*\/issues\/[0-9]{6} ]]; then 
+        url=true
+    fi
+fi
+
+# если это url - вытаскиваем из него ID задачи
+if [[ $url == true ]]; then 
+    task_id=`echo $clip_content | awk -F'/' '{print $NF}'`
+fi
+
+if [[ -z $task_id ]]; then
+    echo "Can not get task ID!"
+    exit 1
+else
+    toggl start "#$task_id" -o "Задачи"
+    echo "Task #$task_id started"
+fi
