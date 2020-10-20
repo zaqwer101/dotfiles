@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Use "127.0.0.2" as default loopback:
+local="127.0.0.2"
+# Use "root" as default user:
+user="root"
+# Use "22" as default port:
+conport="22"
+# Which ports should we forward?
+ports=( 22 80 443 623 1500 5900 5901 5902 5120 5123 8888 17990 17988 )
+# Get launch options:
+while getopts "h:t:l:u:p:" opt; do
+    case $opt in
+        h) host="${OPTARG}";;
+        t) target="${OPTARG}";;
+        l) local="${OPTARG}";;
+    u) user="${OPTARG}";;
+    p) conport="${OPTARG}";;
+    esac
+done
+# Fill up all the opts:
+for port in "${ports[@]}"; do
+    SSHOPTS="${SSHOPTS:-} -L${local}:${port}:${target}:${port}"
+done
+# Connect via ssh:
+sudo ssh ${SSHOPTS} -C -i ~/.ssh/id_rsa "${user}@${host}" -p ${conport}
